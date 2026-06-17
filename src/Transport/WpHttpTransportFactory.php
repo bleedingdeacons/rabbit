@@ -1,0 +1,63 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Rabbit\Transport;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+use Rabbit\Transport\Interfaces\HttpTransport;
+use Rabbit\Transport\Interfaces\HttpTransportFactory;
+
+/**
+ * Default {@see HttpTransportFactory}: hands out {@see WpHttpTransport}
+ * instances backed by the WordPress HTTP API.
+ *
+ * The factory holds the *defaults* (TLS verification, timeout,
+ * redirect depth, user-agent); {@see create()} builds a fresh
+ * transport each time, applying any per-call overrides on top of
+ * those defaults.
+ *
+ * An operator who wants a different transport (Guzzle, a signing
+ * wrapper, a recorder) writes their own {@see HttpTransportFactory}
+ * and binds it in place of this one; nothing downstream changes
+ * because callers only ever see the interface.
+ */
+final class WpHttpTransportFactory implements HttpTransportFactory
+{
+    public function __construct(
+        private readonly bool $verifyTls = true,
+        private readonly int $timeoutSeconds = 15,
+        private readonly int $maxRedirects = 5,
+        private readonly string $userAgent = 'Rabbit (WordPress member-messaging transport)',
+        /**
+         * Optional log-channel override passed through to every
+         * transport this factory builds. Lets a driver attribute the
+         * generic transport's HTTP logging to its own plugin channel
+         * (e.g. WhatsApp → "whatsapp"). Empty string keeps the
+         * transport's default class-name channel.
+         */
+        private readonly string $logChannel = '',
+    ) {
+    }
+
+    /**
+     * Build a fresh {@see WpHttpTransport}. Any argument left null
+     * falls back to the corresponding factory default.
+     */
+    public function create(
+        ?bool $verifyTls = null,
+        ?int $timeoutSeconds = null,
+        ?int $maxRedirects = null,
+    ): HttpTransport {
+        return new WpHttpTransport(
+            verifyTls: $verifyTls ?? $this->verifyTls,
+            timeoutSeconds: $timeoutSeconds ?? $this->timeoutSeconds,
+            maxRedirects: $maxRedirects ?? $this->maxRedirects,
+            userAgent: $this->userAgent,
+            logChannel: $this->logChannel,
+        );
+    }
+}
