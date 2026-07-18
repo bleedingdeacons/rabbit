@@ -1,6 +1,9 @@
 # Rabbit
 
-**Version:** 1.0.0
+[![CI](https://github.com/bleedingdeacons/rabbit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bleedingdeacons/rabbit/actions/workflows/ci.yml)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![PHP](https://img.shields.io/badge/php-8.1%2B-777bb4)
+![Licence](https://img.shields.io/badge/licence-MIT%20(Modified)-green)
 
 Framework for sending outbound messages to **Unity** members. Rabbit is the
 *contracts* plugin: it defines the messaging interfaces, value objects, a shared
