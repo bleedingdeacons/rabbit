@@ -82,7 +82,7 @@ without deactivating it.
 ```bash
 composer install
 composer test    # PHPUnit unit tests
-composer stan    # PHPStan
+composer phpstan # PHPStan
 composer cs      # PHP_CodeSniffer (WordPress standard)
 ```
 
