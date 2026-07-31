@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Rabbit\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
+use BleedingDeacons\WpMocks\TestCase;
 use Rabbit\Messaging\Models\Recipient;
 
 final class RecipientTest extends TestCase

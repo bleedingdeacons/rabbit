@@ -5,22 +5,35 @@ declare(strict_types=1);
 /**
  * PHPUnit bootstrap for Rabbit.
  *
- * Defines ABSPATH and a small set of WP function shims so Rabbit's
- * source files (which guard against direct access and call a handful of
- * WP utilities) load under PHPUnit without a real WordPress. Cross-plugin
- * interfaces Rabbit type-hints (Unity's Member/MemberRepository and
- * Scrutiny's AuditLogger) are stubbed here so the MemberMessenger unit
- * test can run in isolation.
+ * WordPress stand-ins come from bleedingdeacons/wp-mocks, shared across the
+ * plugin suite. Its bootstrap loads Patchwork before anything patchable, so
+ * anything below that defines WordPress functions of its own must stay after
+ * the Bootstrap::load() call, not before it.
+ *
+ * Not loaded here: the `sentinel` stub group. Rabbit\Logger\HasLogger is
+ * written to no-op when wp_log() is absent — the shared logger mu-plugin is
+ * Sentinel's, and Rabbit does not depend on it — and that is the branch these
+ * tests run.
+ *
+ * What is not WordPress still has to be arranged here: the cross-plugin
+ * interfaces Rabbit type-hints (Unity's Member/MemberRepository and Scrutiny's
+ * AuditLogger) belong to sibling plugins that are not installed in the test
+ * run, so MemberMessenger gets minimal stand-ins for them.
  */
+
+use BleedingDeacons\WpMocks\Bootstrap;
+use BleedingDeacons\WpMocks\WpState;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+Bootstrap::load(['wordpress']);
+
+// Makes plugins_url()/plugin_dir_url() answer with Rabbit's own path.
+WpState::$pluginSlug = 'rabbit';
 
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
-
-// PSR-11 contracts (stubbed for testing — real installs use Unity/composer).
-require_once __DIR__ . '/stubs/Psr/Container/ContainerExceptionInterface.php';
-require_once __DIR__ . '/stubs/Psr/Container/NotFoundExceptionInterface.php';
-require_once __DIR__ . '/stubs/Psr/Container/ContainerInterface.php';
 
 // --- Rabbit source ---------------------------------------------------
 $src = __DIR__ . '/../src';
@@ -62,105 +75,7 @@ if (!interface_exists('Scrutiny\\Audit\\Interfaces\\AuditLogger')) {
 
 require_once $src . '/Members/MemberMessenger.php';
 
-// --- WP HTTP API shims (for the WpHttpTransport tests) ------------------
-require_once __DIR__ . '/Support/FakeWpHttp.php';
-
-if (!function_exists('sanitize_key')) {
-    function sanitize_key($key): string
-    {
-        return strtolower(preg_replace('/[^a-z0-9_\-]/', '', (string) $key) ?? '');
-    }
-}
-
-if (!class_exists('WP_Error')) {
-    class WP_Error
-    {
-        public function __construct(
-            private string $code = '',
-            private string $message = '',
-        ) {
-        }
-
-        public function get_error_code(): string
-        {
-            return $this->code;
-        }
-
-        public function get_error_message(): string
-        {
-            return $this->message;
-        }
-    }
-}
-
-if (!class_exists('WP_Http_Cookie')) {
-    class WP_Http_Cookie
-    {
-        public string $name = '';
-        public string $value = '';
-
-        /** @param array<string,mixed> $args */
-        public function __construct(array $args = [])
-        {
-            $this->name  = (string) ($args['name'] ?? '');
-            $this->value = (string) ($args['value'] ?? '');
-        }
-    }
-}
-
-if (!function_exists('is_wp_error')) {
-    function is_wp_error($thing): bool
-    {
-        return $thing instanceof \WP_Error;
-    }
-}
-
-if (!function_exists('wp_remote_request')) {
-    function wp_remote_request(string $url, array $args = [])
-    {
-        return \Rabbit\Tests\Support\FakeWpHttp::dispatch($url, $args);
-    }
-}
-
-if (!function_exists('wp_remote_retrieve_response_code')) {
-    function wp_remote_retrieve_response_code($response)
-    {
-        if ($response instanceof \WP_Error) {
-            return '';
-        }
-        return $response['response']['code'] ?? '';
-    }
-}
-
-if (!function_exists('wp_remote_retrieve_body')) {
-    function wp_remote_retrieve_body($response): string
-    {
-        if ($response instanceof \WP_Error) {
-            return '';
-        }
-        return (string) ($response['body'] ?? '');
-    }
-}
-
-if (!function_exists('wp_remote_retrieve_headers')) {
-    function wp_remote_retrieve_headers($response)
-    {
-        if ($response instanceof \WP_Error) {
-            return [];
-        }
-        return $response['headers'] ?? [];
-    }
-}
-
-if (!function_exists('wp_remote_retrieve_cookies')) {
-    function wp_remote_retrieve_cookies($response): array
-    {
-        if ($response instanceof \WP_Error) {
-            return [];
-        }
-        return $response['cookies'] ?? [];
-    }
-}
-
+// The WP HTTP API these two reach for is stubbed by wp-mocks, backed by
+// Doubles\FakeWpHttp — no local shim needed to load them.
 require_once $src . '/Transport/WpHttpTransport.php';
 require_once $src . '/Transport/WpHttpTransportFactory.php';
