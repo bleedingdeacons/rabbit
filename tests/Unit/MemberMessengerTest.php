@@ -16,6 +16,7 @@ use Unity\Members\Interfaces\MemberRepository;
 use Unity\Testing\Doubles\FakeContainer;
 use Unity\Testing\Doubles\InMemoryMemberRepository;
 use Unity\Testing\Doubles\MemberStub;
+use Scrutiny\Testing\Doubles\SpyAuditLogger;
 
 
 
@@ -36,23 +37,6 @@ final class CapturingMessageService implements MessageService
     }
 }
 
-final class CapturingAuditLogger implements AuditLogger
-{
-    /** @var array<int,array<string,mixed>> */
-    public array $entries = [];
-
-    public function log(string $action, string $entityType, int $entityId, string $fieldName, string $detail = ''): void
-    {
-        $this->entries[] = compact('action', 'entityType', 'entityId', 'fieldName', 'detail');
-    }
-
-    public function logBatch(string $action, string $entityType, int $entityId, array $fieldNames, string $detail = ''): void
-    {
-        foreach ($fieldNames as $f) {
-            $this->log($action, $entityType, $entityId, $f, $detail);
-        }
-    }
-}
 
 final class MemberMessengerTest extends TestCase
 {
@@ -66,7 +50,7 @@ final class MemberMessengerTest extends TestCase
     public function test_send_text_dispatches_and_audits(): void
     {
         $driver = new CapturingMessageService();
-        $audit = new CapturingAuditLogger();
+        $audit = new SpyAuditLogger();
         $container = new FakeContainer([
             MessageService::class => $driver,
             AuditLogger::class => $audit,
@@ -101,7 +85,7 @@ final class MemberMessengerTest extends TestCase
         $driver = new CapturingMessageService();
         $container = new FakeContainer([
             MessageService::class => $driver,
-            AuditLogger::class => new CapturingAuditLogger(),
+            AuditLogger::class => new SpyAuditLogger(),
         ]);
         $repo = new InMemoryMemberRepository([new MemberStub(id: 7, anonymousName: 'Anon G', mobileNumber: '+447700900123')]);
 
@@ -117,7 +101,7 @@ final class MemberMessengerTest extends TestCase
     public function test_no_driver_bound_throws(): void
     {
         $container = new FakeContainer([
-            AuditLogger::class => new CapturingAuditLogger(),
+            AuditLogger::class => new SpyAuditLogger(),
         ]);
         $repo = new InMemoryMemberRepository([new MemberStub(id: 7, anonymousName: 'Anon G', mobileNumber: '+447700900123')]);
 
@@ -130,7 +114,7 @@ final class MemberMessengerTest extends TestCase
     {
         $container = new FakeContainer([
             MessageService::class => new CapturingMessageService(),
-            AuditLogger::class => new CapturingAuditLogger(),
+            AuditLogger::class => new SpyAuditLogger(),
         ]);
         $repo = new InMemoryMemberRepository(); // empty
 
@@ -143,7 +127,7 @@ final class MemberMessengerTest extends TestCase
     {
         $container = new FakeContainer([
             MessageService::class => new CapturingMessageService(),
-            AuditLogger::class => new CapturingAuditLogger(),
+            AuditLogger::class => new SpyAuditLogger(),
         ]);
         $repo = new InMemoryMemberRepository([new MemberStub(id: 7, anonymousName: 'Anon G', mobileNumber: '   ')]);
 

@@ -81,17 +81,36 @@ spl_autoload_register(static function (string $class) use ($unitySrc): void {
     }
 });
 
-// --- Cross-plugin interface stubs --------------------------------------
-// Scrutiny ships no test doubles yet, so its contract is still stubbed to the
-// shape MemberMessenger touches. Same trade-off as the Unity stubs above, and
-// it should go the same way once Scrutiny ships an AuditLogger spy.
-if (!interface_exists('Scrutiny\\Audit\\Interfaces\\AuditLogger')) {
-    eval('namespace Scrutiny\\Audit\\Interfaces; interface AuditLogger {
-        const ENTITY_MEMBER = "member";
-        public function log(string $action, string $entityType, int $entityId, string $fieldName, string $detail = ""): void;
-        public function logBatch(string $action, string $entityType, int $entityId, array $fieldNames, string $detail = ""): void;
-    }');
+// --- Scrutiny ------------------------------------------------------------
+// MemberMessenger type-hints Scrutiny\Audit\Interfaces\AuditLogger and the
+// tests audit through the spy Scrutiny ships at Scrutiny\Testing\Doubles.
+// Loaded from the sibling checkout CI already arranges, same as Unity above.
+//
+// This used to eval() the contract "to the shape MemberMessenger touches":
+// log(), logBatch(), and ENTITY_MEMBER — one of the twelve constants the real
+// interface declares. Any double satisfied that, so this suite could not have
+// noticed a change to the genuine contract.
+$scrutinySrc = dirname(__DIR__, 2) . '/scrutiny/src';
+
+if (!is_dir($scrutinySrc)) {
+    fwrite(STDERR, PHP_EOL . 'ERROR: Scrutiny plugin source not found at ' . $scrutinySrc . PHP_EOL
+        . "Rabbit is built on Scrutiny's audit contract and test doubles, so the" . PHP_EOL
+        . 'Scrutiny plugin must be checked out as a sibling directory for this' . PHP_EOL
+        . 'suite to run.' . PHP_EOL . PHP_EOL);
+    exit(1);
 }
+
+spl_autoload_register(static function (string $class) use ($scrutinySrc): void {
+    if (!str_starts_with($class, 'Scrutiny\\')) {
+        return;
+    }
+
+    $file = $scrutinySrc . '/' . str_replace('\\', '/', substr($class, strlen('Scrutiny\\'))) . '.php';
+
+    if (is_file($file)) {
+        require_once $file;
+    }
+});
 
 require_once $src . '/Members/MemberMessenger.php';
 
