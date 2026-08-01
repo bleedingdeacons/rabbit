@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Rabbit\Tests\Unit;
 
 use BleedingDeacons\WpMocks\TestCase;
-use Psr\Container\ContainerInterface;
 use Rabbit\Members\MemberMessenger;
 use Rabbit\Messaging\Interfaces\MessageService;
 use Rabbit\Messaging\Interfaces\MessagingException;
@@ -14,71 +13,12 @@ use Rabbit\Messaging\Models\MessageResult;
 use Scrutiny\Audit\Interfaces\AuditLogger;
 use Unity\Members\Interfaces\Member;
 use Unity\Members\Interfaces\MemberRepository;
+use Unity\Testing\Doubles\FakeContainer;
+use Unity\Testing\Doubles\InMemoryMemberRepository;
+use Unity\Testing\Doubles\MemberStub;
 
-/** Minimal PSR-11 container backed by a map. */
-final class FakeContainer implements ContainerInterface
-{
-    /** @param array<string,mixed> $entries */
-    public function __construct(private array $entries = [])
-    {
-    }
 
-    public function set(string $id, mixed $value): void
-    {
-        $this->entries[$id] = $value;
-    }
 
-    public function get(string $id): mixed
-    {
-        if (!array_key_exists($id, $this->entries)) {
-            throw new \RuntimeException("no entry for {$id}");
-        }
-        return $this->entries[$id];
-    }
-
-    public function has(string $id): bool
-    {
-        return array_key_exists($id, $this->entries);
-    }
-}
-
-final class FakeMember implements Member
-{
-    public function __construct(
-        private int $id,
-        private string $name,
-        private string $mobile,
-    ) {
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function getAnonymousName(): string
-    {
-        return $this->name;
-    }
-
-    public function getMobileNumber(): string
-    {
-        return $this->mobile;
-    }
-}
-
-final class FakeMemberRepository implements MemberRepository
-{
-    /** @param array<int,Member> $members */
-    public function __construct(private array $members = [])
-    {
-    }
-
-    public function findById(int $id): ?Member
-    {
-        return $this->members[$id] ?? null;
-    }
-}
 
 final class CapturingMessageService implements MessageService
 {
@@ -118,7 +58,7 @@ final class MemberMessengerTest extends TestCase
 {
     private function makeRabbit(
         FakeContainer $container,
-        FakeMemberRepository $repo
+        InMemoryMemberRepository $repo
     ): MemberMessenger {
         return new MemberMessenger($container, $repo);
     }
@@ -131,9 +71,7 @@ final class MemberMessengerTest extends TestCase
             MessageService::class => $driver,
             AuditLogger::class => $audit,
         ]);
-        $repo = new FakeMemberRepository([
-            7 => new FakeMember(7, 'Anon G', '+447700900123'),
-        ]);
+        $repo = new InMemoryMemberRepository([new MemberStub(id: 7, anonymousName: 'Anon G', mobileNumber: '+447700900123')]);
 
         $result = $this->makeRabbit($container, $repo)->sendTextToMember(7, 'Hello there');
 
@@ -165,9 +103,7 @@ final class MemberMessengerTest extends TestCase
             MessageService::class => $driver,
             AuditLogger::class => new CapturingAuditLogger(),
         ]);
-        $repo = new FakeMemberRepository([
-            7 => new FakeMember(7, 'Anon G', '+447700900123'),
-        ]);
+        $repo = new InMemoryMemberRepository([new MemberStub(id: 7, anonymousName: 'Anon G', mobileNumber: '+447700900123')]);
 
         $this->makeRabbit($container, $repo)
             ->sendTemplateToMember(7, 'shift_reminder', 'en_GB', ['1 hour']);
@@ -183,9 +119,7 @@ final class MemberMessengerTest extends TestCase
         $container = new FakeContainer([
             AuditLogger::class => new CapturingAuditLogger(),
         ]);
-        $repo = new FakeMemberRepository([
-            7 => new FakeMember(7, 'Anon G', '+447700900123'),
-        ]);
+        $repo = new InMemoryMemberRepository([new MemberStub(id: 7, anonymousName: 'Anon G', mobileNumber: '+447700900123')]);
 
         $this->expectException(MessagingException::class);
         $this->expectExceptionMessage('No message driver is bound');
@@ -198,7 +132,7 @@ final class MemberMessengerTest extends TestCase
             MessageService::class => new CapturingMessageService(),
             AuditLogger::class => new CapturingAuditLogger(),
         ]);
-        $repo = new FakeMemberRepository([]); // empty
+        $repo = new InMemoryMemberRepository(); // empty
 
         $this->expectException(MessagingException::class);
         $this->expectExceptionMessage('No member found with ID 7');
@@ -211,9 +145,7 @@ final class MemberMessengerTest extends TestCase
             MessageService::class => new CapturingMessageService(),
             AuditLogger::class => new CapturingAuditLogger(),
         ]);
-        $repo = new FakeMemberRepository([
-            7 => new FakeMember(7, 'Anon G', '   '),
-        ]);
+        $repo = new InMemoryMemberRepository([new MemberStub(id: 7, anonymousName: 'Anon G', mobileNumber: '   ')]);
 
         $this->expectException(MessagingException::class);
         $this->expectExceptionMessage('no mobile number');
@@ -228,9 +160,7 @@ final class MemberMessengerTest extends TestCase
         $container = new FakeContainer([
             MessageService::class => $driver,
         ]);
-        $repo = new FakeMemberRepository([
-            7 => new FakeMember(7, 'Anon G', '+447700900123'),
-        ]);
+        $repo = new InMemoryMemberRepository([new MemberStub(id: 7, anonymousName: 'Anon G', mobileNumber: '+447700900123')]);
 
         $result = $this->makeRabbit($container, $repo)->sendTextToMember(7, 'Hello');
         $this->assertSame('wamid.TEST123', $result->getMessageId());
