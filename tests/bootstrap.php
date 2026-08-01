@@ -48,23 +48,43 @@ require_once $src . '/Transport/Interfaces/TransportException.php';
 require_once $src . '/Transport/Interfaces/HttpTransport.php';
 require_once $src . '/Transport/Interfaces/HttpTransportFactory.php';
 
+// --- Unity ---------------------------------------------------------------
+// MemberMessenger type-hints Unity\Members\Interfaces\{Member,
+// MemberRepository}, and the tests build members with the doubles Unity ships
+// at Unity\Testing\Doubles. Load both from the sibling checkout that CI
+// already arranges (see the "Checkout Unity" step in ci.yml).
+//
+// This used to eval() a three-method Member and a one-method MemberRepository
+// — "we only need the symbols to exist with the members MemberMessenger
+// actually touches". The real Member has 23. Any double satisfied the stub, so
+// this suite could not have noticed a change to the genuine contract; it would
+// have gone green and fataled in production. That is the whole reason the
+// doubles now come from the plugin that owns the interface.
+$unitySrc = dirname(__DIR__, 2) . '/unity/src';
+
+if (!is_dir($unitySrc)) {
+    fwrite(STDERR, PHP_EOL . 'ERROR: Unity plugin source not found at ' . $unitySrc . PHP_EOL
+        . "Rabbit is built on Unity's interfaces and test doubles, so the Unity" . PHP_EOL
+        . 'plugin must be checked out as a sibling directory for this suite to run.' . PHP_EOL . PHP_EOL);
+    exit(1);
+}
+
+spl_autoload_register(static function (string $class) use ($unitySrc): void {
+    if (!str_starts_with($class, 'Unity\\')) {
+        return;
+    }
+
+    $file = $unitySrc . '/' . str_replace('\\', '/', substr($class, strlen('Unity\\'))) . '.php';
+
+    if (is_file($file)) {
+        require_once $file;
+    }
+});
+
 // --- Cross-plugin interface stubs --------------------------------------
-// Minimal shapes of the Unity / Scrutiny contracts MemberMessenger
-// type-hints. Real installs provide the genuine articles via their
-// autoloaders; here we only need the symbols to exist with the members
-// MemberMessenger actually touches.
-if (!interface_exists('Unity\\Members\\Interfaces\\Member')) {
-    eval('namespace Unity\\Members\\Interfaces; interface Member {
-        public function getId(): int;
-        public function getAnonymousName(): string;
-        public function getMobileNumber(): string;
-    }');
-}
-if (!interface_exists('Unity\\Members\\Interfaces\\MemberRepository')) {
-    eval('namespace Unity\\Members\\Interfaces; interface MemberRepository {
-        public function findById(int $id): ?Member;
-    }');
-}
+// Scrutiny ships no test doubles yet, so its contract is still stubbed to the
+// shape MemberMessenger touches. Same trade-off as the Unity stubs above, and
+// it should go the same way once Scrutiny ships an AuditLogger spy.
 if (!interface_exists('Scrutiny\\Audit\\Interfaces\\AuditLogger')) {
     eval('namespace Scrutiny\\Audit\\Interfaces; interface AuditLogger {
         const ENTITY_MEMBER = "member";
