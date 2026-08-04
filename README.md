@@ -10,7 +10,7 @@
 Framework for sending outbound messages to **Unity** members. Rabbit is the
 *contracts* plugin: it defines the messaging interfaces, value objects, a shared
 HTTP transport, capabilities, and the high-level `MemberMessenger` helper. An
-**implementation plugin** (e.g. [WhatsApp](https://github.com/thebleedingdeacons/whatsapp))
+**implementation plugin** (e.g. [WhatsApp](https://github.com/bleedingdeacons/whatsapp))
 binds a concrete driver against the contract.
 
 Rabbit does nothing visible on its own — it never talks to a provider. It only
