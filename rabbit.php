@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Plugin Name: Rabbit
  * Description: Framework for sending outbound messages to Unity members. Defines the contracts (MessageService, models, transport) and a high-level MemberMessenger helper that turns a Unity member into a sent message; an implementation plugin (e.g. WhatsApp) binds a concrete driver. Ships no driver of its own — Rabbit alone does nothing visible until an implementation plugin is active. Requires Unity for member data and Scrutiny for GDPR audit logging.
@@ -17,6 +15,8 @@ declare(strict_types=1);
  * License: MIT (Modified)
  * Text Domain: rabbit
  */
+
+declare(strict_types=1);
 
 if (!defined('ABSPATH')) {
     exit;
@@ -96,7 +96,8 @@ spl_autoload_register(function ($class) {
  * @return \Psr\Container\ContainerInterface
  * @throws \RuntimeException If Rabbit is not initialised yet.
  */
-function rabbit(): \Psr\Container\ContainerInterface {
+function rabbit(): \Psr\Container\ContainerInterface
+{
     return \Rabbit\Plugin::getContainer();
 }
 
@@ -130,7 +131,6 @@ add_action('unity/loaded', function ($container) {
          * @param \Psr\Container\ContainerInterface $container The shared dependency container
          */
         do_action('rabbit/loaded', \Rabbit\Plugin::getContainer());
-
     } catch (\Exception $e) {
         function_exists('wp_log')
             ? wp_log('rabbit')->error('Rabbit Plugin Initialisation Error: ' . $e->getMessage(), ['exception' => $e->getMessage(), 'trace' => $e->getTraceAsString()])
