@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Rabbit
  * Description: Framework for sending outbound messages to Unity members. Defines the contracts (MessageService, models, transport) and a high-level MemberMessenger helper that turns a Unity member into a sent message; an implementation plugin (e.g. WhatsApp) binds a concrete driver. Ships no driver of its own — Rabbit alone does nothing visible until an implementation plugin is active. Requires Unity for member data and Scrutiny for GDPR audit logging.
- * Version: 1.4.1
+ * Version: 1.4.2
  * Requires at least: 6.1
  * Requires PHP: 8.1
  * Requires Plugins: unity, scrutiny
