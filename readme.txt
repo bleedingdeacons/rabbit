@@ -3,8 +3,8 @@ Contributors: thebleedingdeacons
 Tags: messaging, contracts, interfaces, members, notifications
 Requires at least: 6.1
 Tested up to: 6.9
-Stable tag: 1.4.5
-Build date: 2026/08/07 17:46:39
+Stable tag: 1.4.6
+Build date: 2026/08/07 23:28:24
 Requires PHP: 8.1
 License: MIT (Modified — No Resale)
 
