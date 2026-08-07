@@ -49,6 +49,5 @@ parameters:
         -
             message: '#Trait .*HasCapabilities is used zero times and is not analysed#'
             path: src/Capabilities/HasCapabilities.php
-        # WordPress functions that PHPStan doesn't recognize
-        - '#Function get_plugin_data not found#'
-        - '#Function dbDelta not found#'
+        # The get_plugin_data and dbDelta entries that used to follow were
+        # removed once wordpress-stubs resolved them and they stopped matching.
