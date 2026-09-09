@@ -31,7 +31,13 @@ final class WpHttpTransportFactory implements HttpTransportFactory
         private readonly bool $verifyTls = true,
         private readonly int $timeoutSeconds = 15,
         private readonly int $maxRedirects = 5,
-        private readonly string $userAgent = 'Rabbit (WordPress member-messaging transport)',
+        /**
+         * User-agent every transport this factory builds introduces
+         * itself with. Empty string leaves the transport identifying
+         * as Rabbit; a driver passes its own, built with
+         * {@see UserAgent::forApp()}.
+         */
+        private readonly string $userAgent = '',
         /**
          * Optional log-channel override passed through to every
          * transport this factory builds. Lets a driver attribute the
