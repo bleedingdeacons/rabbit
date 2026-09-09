@@ -35,6 +35,12 @@ if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
 
+// The user-agent builder reports the plugin version, so the tests run the
+// same branch production does rather than the "no version defined" fallback.
+if (!defined('RABBIT_VERSION')) {
+    define('RABBIT_VERSION', '9.9.9');
+}
+
 // --- Rabbit source ---------------------------------------------------
 $src = __DIR__ . '/../src';
 require_once $src . '/Logger/HasLogger.php';
@@ -116,5 +122,6 @@ require_once $src . '/Members/MemberMessenger.php';
 
 // The WP HTTP API these two reach for is stubbed by wp-mocks, backed by
 // Doubles\FakeWpHttp — no local shim needed to load them.
+require_once $src . '/Transport/UserAgent.php';
 require_once $src . '/Transport/WpHttpTransport.php';
 require_once $src . '/Transport/WpHttpTransportFactory.php';
