@@ -2,10 +2,10 @@
 Contributors: thebleedingdeacons
 Tags: messaging, contracts, interfaces, members, notifications
 Requires at least: 6.1
-Tested up to: 6.9
+Tested up to: 7.1.1
 Stable tag: 1.4.15
-Build date: 2026/09/09 20:00:02
-Requires PHP: 8.1
+Build date: 2026/09/20 18:45:01
+Requires PHP: 8.4
 License: MIT (Modified — No Resale)
 
 Framework for sending outbound messages to Unity members. Defines contracts; an implementation plugin provides the concrete driver.

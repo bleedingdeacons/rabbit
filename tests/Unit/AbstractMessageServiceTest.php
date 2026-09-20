@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rabbit\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use BleedingDeacons\WpMocks\TestCase;
 use Rabbit\Messaging\AbstractMessageService;
 use Rabbit\Messaging\Interfaces\MessagingException;
@@ -96,9 +97,7 @@ final class AbstractMessageServiceTest extends TestCase
         $this->assertTrue(true);
     }
 
-    /**
-     * @dataProvider numberProvider
-     */
+    #[DataProvider('numberProvider')]
     public function test_normalise_number(string $input, string $expected): void
     {
         $this->assertSame($expected, TestableMessageService::exposeNormalise($input));

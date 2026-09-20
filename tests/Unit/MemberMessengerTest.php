@@ -11,8 +11,6 @@ use Rabbit\Messaging\Interfaces\MessagingException;
 use Rabbit\Messaging\Models\Message;
 use Rabbit\Messaging\Models\MessageResult;
 use Scrutiny\Audit\Interfaces\AuditLogger;
-use Unity\Members\Interfaces\Member;
-use Unity\Members\Interfaces\MemberRepository;
 use Unity\Testing\Doubles\FakeContainer;
 use Unity\Testing\Doubles\InMemoryMemberRepository;
 use Unity\Testing\Doubles\MemberStub;
