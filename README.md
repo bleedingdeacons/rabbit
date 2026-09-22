@@ -90,7 +90,7 @@ composer install
 
 | Command | Description |
 |---|---|
-| `composer test` | Run the full PHPUnit test suite |
+| `composer test` | Run the full Pest test suite |
 | `composer test:unit` | Run unit tests only |
 | `composer test:integration` | Run integration tests only |
 | `composer test:coverage` | Generate an HTML coverage report |
@@ -101,6 +101,10 @@ composer install
 
 Line coverage is reported to [Coveralls](https://coveralls.io/github/bleedingdeacons/rabbit?branch=main)
 on every CI run — see the coverage badge at the top of this file.
+
+The suite is written in [Pest](https://pestphp.com) (running on PHPUnit) and
+lives in `tests/Unit/`. Run it with Pest, not PHPUnit directly —
+`vendor/bin/phpunit` cannot load Pest's closure-based files.
 
 ## License
 
