@@ -4,68 +4,57 @@ declare(strict_types=1);
 
 namespace Rabbit\Tests\Unit;
 
-use BleedingDeacons\WpMocks\TestCase;
 use Rabbit\Messaging\Models\Message;
 use Rabbit\Messaging\Models\Recipient;
 
-final class MessageTest extends TestCase
-{
-    public function test_text_factory(): void
-    {
-        $m = Message::text(Recipient::to('+447700900123', 'Anon', 1), 'Hello', ['member_id' => 1]);
-        $this->assertTrue($m->isText());
-        $this->assertFalse($m->isTemplate());
-        $this->assertSame(Message::TYPE_TEXT, $m->getType());
-        $this->assertSame('Hello', $m->getBody());
-        $this->assertSame(1, $m->getTo()->getMemberId());
-        $this->assertSame(['member_id' => 1], $m->getMeta());
-    }
+it('builds a text message from the factory', function () {
+    $m = Message::text(Recipient::to('+447700900123', 'Anon', 1), 'Hello', ['member_id' => 1]);
+    expect($m->isText())->toBeTrue()
+        ->and($m->isTemplate())->toBeFalse()
+        ->and($m->getType())->toBe(Message::TYPE_TEXT)
+        ->and($m->getBody())->toBe('Hello')
+        ->and($m->getTo()->getMemberId())->toBe(1)
+        ->and($m->getMeta())->toBe(['member_id' => 1]);
+});
 
-    public function test_template_factory(): void
-    {
-        $m = Message::template(
-            Recipient::to('+447700900123'),
-            'shift_reminder',
-            'en_GB',
-            ['1 hour', 'Tuesday']
-        );
-        $this->assertTrue($m->isTemplate());
-        $this->assertSame('shift_reminder', $m->getTemplateName());
-        $this->assertSame('en_GB', $m->getTemplateLanguage());
-        $this->assertSame(['1 hour', 'Tuesday'], $m->getTemplateParams());
-    }
+it('builds a template message from the factory', function () {
+    $m = Message::template(
+        Recipient::to('+447700900123'),
+        'shift_reminder',
+        'en_GB',
+        ['1 hour', 'Tuesday']
+    );
+    expect($m->isTemplate())->toBeTrue()
+        ->and($m->getTemplateName())->toBe('shift_reminder')
+        ->and($m->getTemplateLanguage())->toBe('en_GB')
+        ->and($m->getTemplateParams())->toBe(['1 hour', 'Tuesday']);
+});
 
-    public function test_unknown_type_coerces_to_text(): void
-    {
-        $m = new Message(['to' => ['phone' => '+447700900123'], 'type' => 'carrier-pigeon']);
-        $this->assertSame(Message::TYPE_TEXT, $m->getType());
-    }
+it('coerces an unknown type to text', function () {
+    $m = new Message(['to' => ['phone' => '+447700900123'], 'type' => 'carrier-pigeon']);
+    expect($m->getType())->toBe(Message::TYPE_TEXT);
+});
 
-    public function test_template_params_are_stringified(): void
-    {
-        $m = Message::template(Recipient::to('+447700900123'), 't', 'en_GB', [1, 2.5, 'x']);
-        $this->assertSame(['1', '2.5', 'x'], $m->getTemplateParams());
-    }
+it('stringifies template params', function () {
+    $m = Message::template(Recipient::to('+447700900123'), 't', 'en_GB', [1, 2.5, 'x']);
+    expect($m->getTemplateParams())->toBe(['1', '2.5', 'x']);
+});
 
-    public function test_with_overrides_fields(): void
-    {
-        $m = Message::text(Recipient::to('+447700900123'), 'Hello');
-        $m2 = $m->with(['body' => 'Goodbye']);
-        $this->assertSame('Hello', $m->getBody());
-        $this->assertSame('Goodbye', $m2->getBody());
-    }
+it('overrides fields with with()', function () {
+    $m = Message::text(Recipient::to('+447700900123'), 'Hello');
+    $m2 = $m->with(['body' => 'Goodbye']);
+    expect($m->getBody())->toBe('Hello')
+        ->and($m2->getBody())->toBe('Goodbye');
+});
 
-    public function test_array_round_trip(): void
-    {
-        $m = Message::template(Recipient::to('+447700900123', 'Anon', 9), 't', 'en_GB', ['a']);
-        $copy = new Message($m->toArray());
-        $this->assertEquals($m, $copy);
-    }
+it('survives an array round trip', function () {
+    $m = Message::template(Recipient::to('+447700900123', 'Anon', 9), 't', 'en_GB', ['a']);
+    $copy = new Message($m->toArray());
+    expect($copy)->toEqual($m);
+});
 
-    public function test_to_accepts_recipient_object(): void
-    {
-        $recipient = Recipient::to('+447700900123', 'Anon', 3);
-        $m = new Message(['to' => $recipient, 'type' => 'text', 'body' => 'Hi']);
-        $this->assertSame(3, $m->getTo()->getMemberId());
-    }
-}
+it('accepts a Recipient object for to', function () {
+    $recipient = Recipient::to('+447700900123', 'Anon', 3);
+    $m = new Message(['to' => $recipient, 'type' => 'text', 'body' => 'Hi']);
+    expect($m->getTo()->getMemberId())->toBe(3);
+});

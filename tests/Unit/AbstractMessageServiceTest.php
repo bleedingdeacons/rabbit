@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Rabbit\Tests\Unit;
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use BleedingDeacons\WpMocks\TestCase;
 use Rabbit\Messaging\AbstractMessageService;
 use Rabbit\Messaging\Interfaces\MessagingException;
 use Rabbit\Messaging\Models\Message;
@@ -42,78 +40,56 @@ final class TestableMessageService extends AbstractMessageService
     }
 }
 
-final class AbstractMessageServiceTest extends TestCase
-{
-    public function test_message_without_recipient_throws(): void
-    {
+describe('validateMessage', function () {
+    it('throws for a message without a recipient', function () {
         $service = new TestableMessageService();
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('no recipient');
         $service->exposeValidate(Message::text(Recipient::to(''), 'Hello'));
-    }
+    })->throws(MessagingException::class, 'no recipient');
 
-    public function test_implausible_number_throws(): void
-    {
+    it('throws for an implausible number', function () {
         $service = new TestableMessageService();
-        $this->expectException(MessagingException::class);
         $service->exposeValidate(Message::text(Recipient::to('12'), 'Hello'));
-    }
+    })->throws(MessagingException::class);
 
-    public function test_empty_text_body_throws(): void
-    {
+    it('throws for an empty text body', function () {
         $service = new TestableMessageService();
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('non-empty body');
         $service->exposeValidate(Message::text(Recipient::to('+447700900123'), '   '));
-    }
+    })->throws(MessagingException::class, 'non-empty body');
 
-    public function test_valid_text_passes(): void
-    {
+    it('passes a valid text message', function () {
         $service = new TestableMessageService();
-        $service->exposeValidate(Message::text(Recipient::to('+447700900123'), 'Hello'));
-        $this->assertTrue(true); // didn't throw
-    }
 
-    public function test_template_without_name_throws(): void
-    {
+        expect(fn () => $service->exposeValidate(Message::text(Recipient::to('+447700900123'), 'Hello')))
+            ->not->toThrow(MessagingException::class); // didn't throw
+    });
+
+    it('throws for a template without a name', function () {
         $service = new TestableMessageService();
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('template name');
         $service->exposeValidate(Message::template(Recipient::to('+447700900123'), '', 'en_GB'));
-    }
+    })->throws(MessagingException::class, 'template name');
 
-    public function test_template_without_language_throws(): void
-    {
+    it('throws for a template without a language', function () {
         $service = new TestableMessageService();
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('language code');
         $service->exposeValidate(Message::template(Recipient::to('+447700900123'), 'tmpl', ''));
-    }
+    })->throws(MessagingException::class, 'language code');
 
-    public function test_valid_template_passes(): void
-    {
+    it('passes a valid template message', function () {
         $service = new TestableMessageService();
-        $service->exposeValidate(Message::template(Recipient::to('+447700900123'), 'tmpl', 'en_GB', ['x']));
-        $this->assertTrue(true);
-    }
 
-    #[DataProvider('numberProvider')]
-    public function test_normalise_number(string $input, string $expected): void
-    {
-        $this->assertSame($expected, TestableMessageService::exposeNormalise($input));
-    }
+        expect(fn () => $service->exposeValidate(
+            Message::template(Recipient::to('+447700900123'), 'tmpl', 'en_GB', ['x'])
+        ))->not->toThrow(MessagingException::class);
+    });
+});
 
-    /** @return array<string,array{0:string,1:string}> */
-    public static function numberProvider(): array
-    {
-        return [
-            'plus e164'      => ['+44 7700 900123', '+447700900123'],
-            'bare digits'    => ['447700900123', '447700900123'],
-            'decorated'      => ['(07700) 900-123', '07700900123'],
-            'too short'      => ['12345', ''],
-            'empty'          => ['', ''],
-            'just plus'      => ['+', ''],
-            'double plus'    => ['+44+7700', ''],
-        ];
-    }
-}
+it('normalises a number', function (string $input, string $expected) {
+    expect(TestableMessageService::exposeNormalise($input))->toBe($expected);
+})->with([
+    'plus e164'      => ['+44 7700 900123', '+447700900123'],
+    'bare digits'    => ['447700900123', '447700900123'],
+    'decorated'      => ['(07700) 900-123', '07700900123'],
+    'too short'      => ['12345', ''],
+    'empty'          => ['', ''],
+    'just plus'      => ['+', ''],
+    'double plus'    => ['+44+7700', ''],
+]);
