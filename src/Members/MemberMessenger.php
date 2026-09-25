@@ -21,23 +21,24 @@ use Unity\Members\Interfaces\MemberRepository;
 /**
  * The headline entry point: send a message to a Unity member.
  *
- * This is the layer that ties the three plugins together. It:
+ * This is the layer that ties Unity, Scrutiny and the driver together. It:
  *  1. resolves a Unity {@see Member} (and reads their mobile number),
  *  2. builds a driver-agnostic {@see Message},
  *  3. dispatches it through whatever {@see MessageService} driver an
- *     implementation plugin (e.g. WhatsApp) has bound, and
+ *     the driver plugin (WhatsApp) has bound, and
  *  4. records a Scrutiny GDPR audit entry (action "message") so reading
  *     a member's mobile number to message them leaves an audit trail.
  *
  * Both the driver and the audit logger are resolved from the shared
- * container *lazily, per call* — the driver is bound on
- * `rabbit/loaded` (after Rabbit's own services register) and the
- * audit logger comes from Scrutiny, so resolving them at construction
- * time would be fragile. By the time anyone actually sends, both are in
- * place.
+ * container *lazily, per call* — the driver plugin binds its
+ * {@see MessageService} into Unity's container on `unity/loaded`, and
+ * the audit logger comes from Scrutiny, so resolving them at
+ * construction time would be fragile. By the time anyone actually
+ * sends, both are in place.
  *
- * Usage:
- *   rabbit()->get(MemberMessenger::class)
+ * The driver plugin registers this class in Unity's container too, so
+ * any plugin booting on `unity/loaded` can reach it:
+ *   unity()->get(MemberMessenger::class)
  *       ->sendTextToMember($memberId, 'Your shift starts in 1 hour.');
  */
 final class MemberMessenger
@@ -147,7 +148,7 @@ final class MemberMessenger
                 'type' => $message->getType(),
             ]);
             throw new MessagingException(
-                'No message driver is bound. Activate an implementation plugin (e.g. WhatsApp) to send messages.'
+                'No message driver is bound. Activate the WhatsApp plugin to send messages.'
             );
         }
 

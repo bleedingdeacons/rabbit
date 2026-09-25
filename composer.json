@@ -1,7 +1,7 @@
 {
-    "name": "bleeding-deacons/rabbit",
-    "description": "Framework for sending outbound messages to Unity members. Defines contracts; an implementation plugin provides the concrete driver.",
-    "type": "wordpress-plugin",
+    "name": "bleedingdeacons/rabbit",
+    "description": "Outbound-messaging contracts, models, HTTP transport, capabilities and the MemberMessenger helper, bundled by WhatsApp. A Composer library, not a WordPress plugin.",
+    "type": "library",
     "license": "MIT (Modified)",
     "authors": [
         {
@@ -39,10 +39,6 @@
         }
     },
     "scripts": {
-        "build": "php build.php build:production",
-        "build:production": "php build.php build:production",
-        "build:dev": "php build.php build:dev",
-        "build:clean": "php build.php clean",
         "test": "pest",
         "test:unit": "pest --testsuite=Unit",
         "test:integration": "pest --testsuite=Integration",

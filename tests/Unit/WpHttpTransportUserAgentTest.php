@@ -24,8 +24,9 @@ it('introduces itself as Rabbit by default', function () {
 
     (new WpHttpTransport())->request('GET', 'https://graph.example.com/messages');
 
+    // The version is whatever Composer installed, so only its presence is pinned.
     expect(FakeWpHttp::sentArgs(0)['user-agent'])
-        ->toBe('Rabbit/9.9.9 (rest@aa-bristol.org; https://example.test)');
+        ->toMatch('#^Rabbit/\S+ \(rest@aa-bristol\.org; https://example\.test\)$#');
 });
 
 it('lets a driver user agent override the Rabbit default', function () {

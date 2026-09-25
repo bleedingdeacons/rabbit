@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
  *
  * The runtime permission-check API used by services and admin pages.
  * Role/capability *creation* lives in {@see CapabilityBootstrap}, which
- * the activation hook calls directly.
+ * the driver plugin's activation hook calls directly.
  *
  * Roles understood by Rabbit:
  *  - rabbit_operator — full control: manage connection + send.
