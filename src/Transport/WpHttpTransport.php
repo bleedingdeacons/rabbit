@@ -88,7 +88,7 @@ final class WpHttpTransport implements HttpTransport
             return $this->userAgent;
         }
 
-        return UserAgent::plugin();
+        return UserAgent::library();
     }
 
     /**

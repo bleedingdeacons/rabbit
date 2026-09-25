@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
  * Safe logging trait — silently no-ops if the shared logger mu-plugin
  * (deployed by Sentinel) is not available.
  *
- * This file is a local copy so the trait resolves via this plugin's
+ * This file is a local copy so the trait resolves via this package's
  * own autoloader with no cross-plugin dependency at class-load time.
  */
 trait HasLogger

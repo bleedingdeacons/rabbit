@@ -25,9 +25,9 @@ if (!defined('ABSPATH')) {
  * upstream without anyone having to maintain a label by hand.
  *
  * Rabbit owns this builder rather than each driver reimplementing
- * it, so a driver plugin (WhatsApp and friends) identifies itself
- * with `UserAgent::forApp('WhatsApp', WHATSAPP_VERSION)` and gets the
- * same shape for free.
+ * it, so the driver plugin (WhatsApp) identifies itself with
+ * `UserAgent::forApp('WhatsApp', WHATSAPP_VERSION)` and gets the same
+ * shape for free.
  */
 final class UserAgent
 {
@@ -39,12 +39,11 @@ final class UserAgent
     public const CONTACT = 'rest@aa-bristol.org';
 
     /**
-     * This plugin's own user-agent — what every outbound request it
-     * makes on its own behalf should carry.
+     * Rabbit's own user-agent, for a transport no driver has named.
      */
-    public static function plugin(): string
+    public static function library(): string
     {
-        return self::forApp('Rabbit', defined('RABBIT_VERSION') ? RABBIT_VERSION : '');
+        return self::forApp('Rabbit', self::libraryVersion());
     }
 
     /**
@@ -66,6 +65,23 @@ final class UserAgent
         $product = $version === '' ? $name : $name . '/' . $version;
 
         return sprintf('%s (%s; %s)', $product, self::CONTACT, self::environment());
+    }
+
+    /**
+     * The installed version of this package, as Composer recorded it.
+     * There is no plugin header to read it from any more.
+     */
+    private static function libraryVersion(): string
+    {
+        $package = 'bleedingdeacons/rabbit';
+        if (
+            !class_exists(\Composer\InstalledVersions::class)
+            || !\Composer\InstalledVersions::isInstalled($package)
+        ) {
+            return '';
+        }
+
+        return (string) \Composer\InstalledVersions::getPrettyVersion($package);
     }
 
     /**

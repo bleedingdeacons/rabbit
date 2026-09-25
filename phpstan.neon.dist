@@ -35,13 +35,9 @@ parameters:
         - tests
     bootstrapFiles:
         - vendor/autoload.php
-    scanFiles:
-        # Defines the plugin constants. Not under paths (src only), so it has
-        # to be scanned explicitly.
-        - rabbit.php
     scanDirectories:
-        # Rabbit needs Unity for member data and Scrutiny for GDPR audit
-        # logging. Sentinel is optional at runtime — HasLogger degrades to
+        # MemberMessenger needs Unity for member data and Scrutiny for GDPR
+        # audit logging. Sentinel is optional at runtime — HasLogger degrades to
         # error_log() without it — but its Sentinel_Log_Channel is referenced
         # in type positions. sentinel-logger.php is not PSR-4 compliant and
         # composer skips it when generating autoload rules, so scanDirectories
@@ -50,10 +46,10 @@ parameters:
         - ../scrutiny/src
         - ../sentinel/src
     ignoreErrors:
-        # HasCapabilities is a contract surface: Rabbit publishes it for driver
-        # plugins to use, and nothing inside this plugin uses it, so PHPStan
-        # neither analyses it nor can prove it dead. Kept because removing
-        # published API from a contract plugin is a breaking change, not
+        # HasCapabilities is a contract surface: Rabbit publishes it for the
+        # driver plugin to use, and nothing inside this library uses it, so
+        # PHPStan neither analyses it nor can prove it dead. Kept because
+        # removing published API from a library is a breaking change, not
         # because the warning is wrong.
         -
             message: '#Trait .*HasCapabilities is used zero times and is not analysed#'
